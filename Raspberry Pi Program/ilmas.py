@@ -21,7 +21,6 @@ def on_message(client, userdata, msg):
         )
         cur = conn.cursor()
 
-        # Hitung vibration dari data accelerometer
         vibration = round(
             abs(data.get("ax", 0)) + abs(data.get("ay", 0)) + abs(data.get("az", 0)), 2
         )

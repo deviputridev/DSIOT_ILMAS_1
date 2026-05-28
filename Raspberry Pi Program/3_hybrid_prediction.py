@@ -1,6 +1,3 @@
-# ==========================================
-# 1. URUTAN IMPORT
-# ==========================================
 import psycopg2
 import os
 import time
@@ -14,9 +11,6 @@ from tensorflow.keras.models import load_model
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
 
-# ==========================================
-# 2. KONFIGURASI DATABASE (HARDCODED)
-# ==========================================
 def get_db_connection():
     try:
         conn = psycopg2.connect(
@@ -31,9 +25,6 @@ def get_db_connection():
         print(f"[!] Gagal sambung ke Database: {e}")
         return None
 
-# ==========================================
-# 3. LOAD MODEL AI
-# ==========================================
 path = './' 
 print("\n[Mulai] Memuat AI ke dalam memori...")
 
@@ -46,9 +37,6 @@ except Exception as e:
     print(f"[!] Gagal memuat file AI: {e}")
     exit()
 
-# ==========================================
-# 4. LOOPING UTAMA (PREDIKSI & KIRIM DATA)
-# ==========================================
 def main():
     conn = get_db_connection()
     if conn is None:
@@ -62,7 +50,6 @@ def main():
 
     try:
         while True:
-            # -- A. BACA DATA TERBARU DARI DATABASE --
             cursor.execute("""
                 SELECT id, moisture, moisture_percent, ax, ay, az, gx, gy, gz, pitch, roll
                 FROM sensor_data
@@ -77,7 +64,7 @@ def main():
                 continue
 
             row_id = row[0]
-            data_sekarang = list(row[1:])  # moisture s.d. roll
+            data_sekarang = list(row[1:]) 
 
             data_buffer.append(data_sekarang)
 
@@ -89,7 +76,6 @@ def main():
             if len(data_buffer) > 5:
                 data_buffer.pop(0)
 
-            # -- B. PREDIKSI AI --
             df_rf_input = pd.DataFrame([data_sekarang], columns=feature_names)
             rf_pred = rf_model.predict(df_rf_input)[0]
 
@@ -112,7 +98,6 @@ def main():
 
             print(f"[Update] ID:{row_id} | Getaran:{vibration_db} | RF:{rf_pred} | LSTM:{lstm_pred} -> {status}")
 
-            # -- C. UPDATE BARIS TERBARU DI DATABASE --
             cursor.execute("""
                 UPDATE sensor_data
                 SET status = %s, vibration = %s
