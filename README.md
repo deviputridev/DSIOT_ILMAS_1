@@ -153,6 +153,8 @@ Kolom `status`, `forecast_status`, `forecast_confidence`, `rf_confidence`, dan `
 
 ![Wiring Fritzing](./images_/fritzing.png)
 
+[Klik di sini untuk melihat & memutar 3D Model Sasing](./Casing%Design/atappfixmm.stl)
+
 ### Perangkat Lunak
 
 | No. | Perangkat Lunak | Versi | Fungsi |
