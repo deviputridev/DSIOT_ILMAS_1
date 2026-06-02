@@ -123,17 +123,23 @@ Kolom `status`, `forecast_status`, `forecast_confidence`, `rf_confidence`, dan `
 
 ## 3. Alat dan Bahan
 
-### Perangkat Keras
+### Perangkat Keras (Hardware)
 
-| No. | Komponen | Fungsi | Keterangan |
-|-----|----------|--------|------------|
-| 1 | **ESP32 DevKit V1** | Mikrokontroler utama | Membaca sensor, mengirim data via MQTT over WiFi |
-| 2 | **Sensor Kelembaban Tanah (Soil Moisture)** | Mengukur kadar air tanah | Output analog 0–4095 (ADC 12-bit), terpasang di pin GPIO 34 |
-| 3 | **MPU6050** | Mengukur akselerasi dan sudut kemiringan | Komunikasi I2C, pin SDA=21 / SCL=22; menghasilkan data ax, ay, az, gx, gy, gz, pitch, roll |
-| 4 | **Raspberry Pi 4 Model B** | Server lokal | Menjalankan MQTT broker, program penerima data, dan AI pipeline |
-| 5 | **Kabel Jumper** | Koneksi antar komponen | Male-to-male dan male-to-female |
-| 6 | **Breadboard** | Papan rangkaian prototyping | Untuk pemasangan sementara tanpa solder |
-| 7 | **Baterai** | Sumber daya listrik | USB 5V untuk ESP32; adaptor 5V 3A untuk Raspberry Pi |
+| No. | Komponen | Visual / Foto | Fungsi | Keterangan |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | **ESP32 DevKit V1** | ![ESP32](./images_/esp.webp) | Mikrokontroler utama | Membaca sensor, mengirim data via MQTT over WiFi. |
+| 2 | **ESP32 Expansion Board** | ![Expansion Board](./images_/exp.webp) | Papan ekspansi distribusi | Memperluas pin I/O dan mempermudah distribusi jalur daya (VCC/GND) tanpa *breadboard*. |
+| 3 | **Raspberry Pi 4 Model B** | ![Raspberry Pi](./images_/raspi.webp) | Server lokal (Gateway) | Menjalankan MQTT broker, program penerima data, dan AI pipeline (LSTM-SOS). |
+| 4 | **Sensor Kelembaban Tanah (Soil Moisture)** | ![Soil Moisture](./images_/soil%20and%20lm.webp) | Mengukur kadar air tanah | Output analog 0–4095 (ADC 12-bit), terpasang di pin GPIO 34. |
+| 5 | **MPU6050** | ![MPU6050](./images_/mpu.jpg) | Mengukur akselerasi & kemiringan | Komunikasi I2C (SDA=21 / SCL=22); menghasilkan data ax, ay, az, gx, gy, gz, pitch, roll. |
+| 6 | **Baterai Li-ion 18650 & Case 3S** | ![Baterai 18650](./images_/baterai%20lion.jpg) <br> ![Case 3 Serial](./images_/case%20baterai.avif) | Sumber daya utama lapangan | 3 buah baterai dirangkai seri dalam *case* khusus (menghasilkan tegangan nominal ~11.1V). |
+| 7 | **BMS 3S 12V (Battery Management System)** | ![BMS 3S](./images_/bms.webp) | Proteksi & Manajemen Daya | Mengatur pengisian daya seimbang (*balancing*) pada tiap sel dan mencegah *over-discharge*. |
+| 8 | **Adaptor AC/DC 12V & Jack (Male dan Female)** | <br> ![Jack Female](./images_/adp12v.jpg) ![Adaptor DC](./images_/jack%20dc.jpg) <br> ![Jack Female](./images_/jack%20female.jpg) | Pengisian daya eksternal | Menjadi jalur pengisian ulang baterai perangkat ILMAS atau sebagai suplai daya cadangan. |
+| 9 | **Saklar (Switch)** | ![Saklar](./images_/saklar.avif) | Pemutus arus | Memutus atau menghubungkan aliran listrik utama dari baterai ke keseluruhan sistem perangkat. |
+| 10 | **Kabel Jumper, Pin Header Male & Timah Solder** | ![Kabel Jumper](./images_/jumper.jpg) <br> ![Pin Header](./images_/pinheader.jpg) <br> ![Timah Solder](./images_/timah.webp) | Koneksi elektrikal | Penghubung fisik (Male-to-male / Male-to-female) untuk perakitan permanen di dalam *enclosure*. |
+### Skema Alat dan Bahan (Wiring Flow)
+
+![Skema Alat dan Bahan](./Wiring%20Diagram/wiring%20flow.png)
 
 ### Skema Koneksi ESP32
 
@@ -144,6 +150,8 @@ Kolom `status`, `forecast_status`, `forecast_confidence`, `rf_confidence`, dan `
 | GPIO 22 (SCL) | SCL MPU6050 |
 | 3.3V | VCC MPU6050 |
 | GND | GND semua komponen |
+
+![Wiring Fritzing](./images_/fritzing.png)
 
 ### Perangkat Lunak
 
