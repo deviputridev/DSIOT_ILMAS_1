@@ -149,7 +149,7 @@ Desain sasing terdiri dari 3 bagian utama, yaitu:
 | 2 | **Ruang Utama** | [Klik untuk Menampilan Visual Ruang Utama 1](./Casing%20Design/atasportmm.stl) <br><br> [Klik untuk Menampilan Visual Ruang Utama 2](./Casing%20Design/atasnonportmm.stl) | Penutup bagian utama seperti Esp32, Expansion Board, Baterai | Terbagi 2 bagian yang bisa disambung|
 | 3 | **Ruang Bawah** | [Klik untuk Menampilan Visual Ruang Bawah 1](./Casing%20Design/bawahdpnmm.stl) <br><br> [Klik untuk Menampilan Visual Ruang Bawah 2](./Casing%20Design/bawahblkgmm.stl) | Penutup bagian bawah yaitu sensor soil moisture & LM393 serta MPU6050 | Terbagi 2 bagian yang bisa disambung|
 
-Untuk bagian utuhnya bisa dilihat dibawah:
+Untuk melihat sasing secara utuh bisa dilihat dibawah:
 
 [Klik di sini untuk melihat & memutar 3D Model Sasing Utuh](./Casing%20Design/desiot_full%20body.stl)
 
