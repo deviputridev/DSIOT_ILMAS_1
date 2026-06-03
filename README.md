@@ -3,13 +3,14 @@
 Sistem deteksi dini bencana tanah longsor berbasis IoT dan kecerdasan buatan yang memantau kondisi tanah secara *real-time*, mengklasifikasikan tingkat bahaya menggunakan model *machine learning*, serta mengirimkan peringatan otomatis melalui Telegram.
 
 ---
-## Kelompok 1
-| No | Nama | NRP |
-|----|------|----------|
-| 1 | Athaya Khairani Adi | 5024241007 |
-| 2 | Devi Putri Sekar Arum | 5024241049 |
-| 3 | Muhammad Sayyid Tsabit | 5024241013 |
-| 4 | Xyz Frizy Firstyaji | 5024221073 |
+## 👥 Kelompok 1
+
+| No | Nama                  | NRP        | Peran                                                                 |
+|----|-----------------------|------------|-----------------------------------------------------------------------|
+| 1  | Athaya Khairani Adi    | 5024241007 | Sensor & Database Configuration, Web Developer, AI Engineer           |
+| 2  | Devi Putri Sekar Arum  | 5024241049 | Machine Learning Engineer, Web Developer, AI Engineer                 |
+| 3  | Muhammad Sayyid Tsabit | 5024241013 | 3D Designer & Prototype Developer                                     |
+| 4  | Xyz Frizy Firstyaji    | 5024221073 | Video Editor                                                          |
 
 
 ## Daftar Isi
@@ -370,6 +371,7 @@ TELEGRAM_CHAT_ID=CHAT_ID_TUJUAN
 
 
 ## 8. Video Demonstrasi
-[Klik di sini untuk melihat video demonstrasi](https://drive.google.com/file/d/1K86XRRkkS0SOtEjkmsSaJ_Bi0FRVXc7J/view?usp=sharing)
+[Klik di sini untuk melihat video demonstrasi](https://drive.google.com/file/d/1K86XRRkkS0SOtEjkmsSaJ_Bi0FRVXc7J/view?usp=sharing) 
+
 [Klik di sini untuk melihat video demonstrasi](https://drive.google.com/file/d/1iLurAB8LBT298cOFaYlzEavS7GAKbWdT/view?usp=drive_link)
 
