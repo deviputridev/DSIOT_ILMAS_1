@@ -3,35 +3,44 @@
 Sistem deteksi dini bencana tanah longsor berbasis IoT dan kecerdasan buatan yang memantau kondisi tanah secara *real-time*, mengklasifikasikan tingkat bahaya menggunakan model *machine learning*, serta mengirimkan peringatan otomatis melalui Telegram.
 
 ---
+## Kelompok 1
+| No | Nama | NRP |
+|----|------|----------|
+| 1 | Athaya Khairani Adi | 5024241007 |
+| 2 | Devi Putri Sekar Arum | 5024241049 |
+| 3 | Muhammad Sayyid Tsabit | 5024241013 |
+| 4 | Xyz Frizy Firstyaji | 5024221073 |
+
 
 ## Daftar Isi
-
 1. [Deskripsi Proyek](#1-deskripsi-proyek)
 2. [Alur Sistem](#2-alur-sistem)
 3. [Alat dan Bahan](#3-alat-dan-bahan)
-4. [Foto Alat](#4-foto-alat)
+4. [Dokumentasi](#4-dokumentasi)
 5. [Teknologi yang Digunakan](#5-teknologi-yang-digunakan)
 6. [Struktur Basis Data](#6-struktur-basis-data)
-7. [Struktur Direktori](#7-struktur-direktori)
-8. [Panduan Instalasi](#8-panduan-instalasi)
-9. [Video Demonstrasi](#9-video-demonstrasi)
+7. [Panduan Instalasi](#7-panduan-instalasi)
+8. [Video Demonstrasi](#8-video-demonstrasi)
 
 ---
 
-## 1. Deskripsi Proyek
+## 1. Deskripsi Project
 
 ILMAS (*Intelligent Landslide Monitoring and Alert System*) adalah sistem pemantauan longsor yang terintegrasi dari lapisan perangkat keras (*hardware*) hingga antarmuka web dan notifikasi. Sistem ini dirancang untuk mendeteksi dua faktor utama pemicu longsor secara simultan, yaitu kadar kelembaban tanah dan pergerakan/getaran lereng, kemudian mengolah data tersebut menggunakan dua model *machine learning* untuk menghasilkan status klasifikasi kondisi saat ini (*current status*) dan prediksi kondisi ke depan (*forecast status*).
 
-Sistem terdiri atas empat lapisan utama yang bekerja secara berkesinambungan.
+Sistem terdiri atas empat lapisan utama yang bekerja secara berkesinambungan:
 
-**Lapisan Sensor (Edge Layer):** ESP32 membaca data dari sensor kelembaban tanah dan sensor IMU MPU6050 setiap 5 detik, lalu mengirimkan data melalui protokol MQTT ke *broker* lokal di Raspberry Pi.
+- **Lapisan Sensor (Edge Layer)**  
+  ESP32 membaca data dari sensor kelembaban tanah dan sensor IMU MPU6050 setiap 5 detik. Data sensor kemudian dikirimkan menggunakan protokol MQTT menuju broker lokal yang berjalan pada Raspberry Pi.
 
-**Lapisan Data (Data Layer):** Program subscriber MQTT di Raspberry Pi menerima *payload* JSON dari ESP32 dan menyimpannya ke basis data PostgreSQL di server.
+- **Lapisan Data (Data Layer)**  
+  Raspberry Pi bertindak sebagai subscriber MQTT yang menerima payload data dalam format JSON dari ESP32. Data yang diterima selanjutnya disimpan ke dalam basis data PostgreSQL pada server.
 
-**Lapisan Kecerdasan Buatan (AI Layer):** *Pipeline* AI membaca data terbaru dari basis data, menjalankan model Random Forest untuk klasifikasi status saat ini, dan model LSTM untuk prediksi *forecast*. Hasil prediksi dituliskan kembali ke basis data pada baris yang sama.
+- **Lapisan Kecerdasan Buatan (AI Layer)**  
+  Pipeline AI mengambil data terbaru dari basis data untuk diproses menggunakan model Random Forest dan LSTM. Model Random Forest digunakan untuk mengklasifikasikan kondisi lahan saat ini, sedangkan model LSTM digunakan untuk melakukan prediksi (forecast) kondisi di masa mendatang. Hasil prediksi kemudian disimpan kembali ke basis data.
 
-**Lapisan Tampilan dan Notifikasi (Presentation Layer):** Web *dashboard* berbasis Laravel membaca data dari basis data secara *real-time* dan menampilkan status, grafik, serta data sensor. Apabila status menunjukkan WASPADA atau BAHAYA, sistem mengirimkan notifikasi otomatis ke Telegram Bot lengkap dengan seluruh detail data sensor.
-
+- **Lapisan Tampilan dan Notifikasi (Presentation Layer)**  
+  Dashboard web berbasis Laravel menampilkan data sensor, grafik pemantauan, status kondisi lahan, serta hasil prediksi secara real-time. Jika sistem mendeteksi status **WASPADA** atau **BAHAYA**, notifikasi otomatis akan dikirim melalui Telegram Bot beserta detail data sensor dan hasil analisis yang relevan.
 ### Kelas Klasifikasi
 
 | Status | Keterangan | Tindakan |
@@ -45,56 +54,10 @@ Sistem terdiri atas empat lapisan utama yang bekerja secara berkesinambungan.
 ## 2. Alur Sistem
 
 Berikut alur lengkap sistem dari pembacaan sensor hingga pengiriman notifikasi.
+<p align="center">
+  <img src="images_/workflow.png" width="500">
+</p>
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        LAPISAN SENSOR                               │
-│                                                                     │
-│   [Soil Moisture]──┐                                                │
-│                    ├──► [ESP32] ──MQTT──► [Raspberry Pi]            │
-│   [MPU6050]────────┘     (tiap 5 detik)    (broker: localhost:1883) │
-└─────────────────────────────────────────────────────────────────────┘
-                                                    │
-                                                    ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                        LAPISAN DATA                                 │
-│                                                                     │
-│   ilmas.py / n8n ──► INSERT sensor_data ──► PostgreSQL              │
-│                       (moisture, ax, ay, az,   (db_longsor)         │
-│                        gx, gy, gz, pitch, roll,                     │
-│                        vibration, status=UNKNOWN)                   │
-└─────────────────────────────────────────────────────────────────────┘
-                                                    │
-                                                    ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                     LAPISAN KECERDASAN BUATAN                       │
-│                                                                     │
-│   ai_pipeline.py                                                    │
-│   ├── Baca 1 data terbaru ──► Random Forest ──► status (AMAN/       │
-│   │                                              WASPADA/BAHAYA)    │
-│   │                                              + rf_confidence    │
-│   │                                                                 │
-│   └── Baca 20 data terakhir ──► LSTM ──► forecast_status            │
-│        (sequence input)                  + lstm_confidence          │
-│                                          + forecast_confidence      │
-│                                                                     │
-│   UPDATE sensor_data SET status, forecast_status, confidence...     │
-└─────────────────────────────────────────────────────────────────────┘
-                                                    │
-                                                    ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                   LAPISAN TAMPILAN DAN NOTIFIKASI                   │
-│                                                                     │
-│   Web Dashboard (Laravel) ──► polling GET /api/sensor-now           │
-│   ├── Tampilkan status, forecast, confidence, grafik                │
-│   ├── Integrasi data cuaca BMKG (Surabaya)                          │
-│   └── Chatbot AI (Gemini 2.5 Flash) berbasis data sensor terkini    │
-│                                                                     │
-│   TelegramAlertService                                              │
-│   ├── Status WASPADA ──► kirim notifikasi (cooldown 3 menit)        │
-│   └── Status BAHAYA  ──► kirim notifikasi darurat (cooldown 1 menit)│
-└─────────────────────────────────────────────────────────────────────┘
-```
 
 ### Detail Alur Data Sensor
 
@@ -123,23 +86,23 @@ Kolom `status`, `forecast_status`, `forecast_confidence`, `rf_confidence`, dan `
 
 ## 3. Alat dan Bahan
 
-### Perangkat Keras (Hardware)
-
 | No. | Komponen | Visual / Foto | Fungsi | Keterangan |
 | :--- | :--- | :--- | :--- | :--- |
-| 1 | **ESP32 DevKit V1** | ![ESP32](./images_/esp.webp) | Mikrokontroler utama | Membaca sensor, mengirim data via MQTT over WiFi. |
-| 2 | **ESP32 Expansion Board** | ![Expansion Board](./images_/exp.webp) | Papan ekspansi distribusi | Memperluas pin I/O dan mempermudah distribusi jalur daya (VCC/GND) tanpa *breadboard*. |
-| 3 | **Raspberry Pi 4 Model B** | ![Raspberry Pi](./images_/raspi.webp) | Server lokal (Gateway) | Menjalankan MQTT broker, program penerima data, dan AI pipeline (LSTM-SOS). |
-| 4 | **Sensor Kelembaban Tanah (Soil Moisture)** | ![Soil Moisture](./images_/soil%20and%20lm.webp) | Mengukur kadar air tanah | Output analog 0–4095 (ADC 12-bit), terpasang di pin GPIO 34. |
-| 5 | **MPU6050** | ![MPU6050](./images_/mpu.jpg) | Mengukur akselerasi & kemiringan | Komunikasi I2C (SDA=21 / SCL=22); menghasilkan data ax, ay, az, gx, gy, gz, pitch, roll. |
-| 6 | **Baterai Li-ion 18650 & Case 3S** | ![Baterai 18650](./images_/baterai%20lion.jpg) <br> ![Case 3 Serial](./images_/case%20baterai.avif) | Sumber daya utama lapangan | 3 buah baterai dirangkai seri dalam *case* khusus (menghasilkan tegangan nominal ~11.1V). |
-| 7 | **BMS 3S 12V (Battery Management System)** | ![BMS 3S](./images_/bms.webp) | Proteksi & Manajemen Daya | Mengatur pengisian daya seimbang (*balancing*) pada tiap sel dan mencegah *over-discharge*. |
-| 8 | **Adaptor AC/DC 12V & Jack (Male dan Female)** | <br> ![Jack Female](./images_/adp12v.jpg) ![Adaptor DC](./images_/jack%20dc.jpg) <br> ![Jack Female](./images_/jack%20female.jpg) | Pengisian daya eksternal | Menjadi jalur pengisian ulang baterai perangkat ILMAS atau sebagai suplai daya cadangan. |
-| 9 | **Saklar (Switch)** | ![Saklar](./images_/saklar.avif) | Pemutus arus | Memutus atau menghubungkan aliran listrik utama dari baterai ke keseluruhan sistem perangkat. |
-| 10 | **Kabel Jumper, Pin Header Male & Timah Solder** | ![Kabel Jumper](./images_/jumper.jpg) <br> ![Pin Header](./images_/pinheader.jpg) <br> ![Timah Solder](./images_/timah.webp) | Koneksi elektrikal | Penghubung fisik (Male-to-male / Male-to-female) untuk perakitan permanen di dalam *enclosure*. |
+| 1 | **ESP32 DevKit V1** | <img src="./images_/esp.webp" width="200"> | Mikrokontroler utama | Membaca sensor, mengirim data via MQTT over WiFi. |
+| 2 | **ESP32 Expansion Board** | <img src="./images_/exp.webp" width="200"> | Papan ekspansi distribusi | Memperluas pin I/O dan mempermudah distribusi jalur daya (VCC/GND) tanpa breadboard. |
+| 3 | **Raspberry Pi 4 Model B** | <img src="./images_/raspi.webp" width="200"> | Server lokal (Gateway) | Menjalankan MQTT broker, program penerima data, dan AI pipeline. |
+| 4 | **Sensor Kelembaban Tanah** | <img src="./images_/soil%20and%20lm.webp" width="200"> | Mengukur kadar air tanah | Output analog 0–4095 (ADC 12-bit). |
+| 5 | **MPU6050** | <img src="./images_/mpu.jpg" width="200"> | Mengukur akselerasi & kemiringan | Komunikasi I2C. |
+| 6 | **Baterai Li-ion 18650 & Case 3S** | <img src="./images_/baterai%20lion.jpg" width="200"><br><img src="./images_/case%20baterai.avif" width="200"> | Sumber daya utama lapangan | 3 buah baterai dirangkai seri. |
+| 7 | **BMS 3S 12V** | <img src="./images_/bms.webp" width="200"> | Proteksi & Manajemen Daya | Mengatur balancing dan proteksi baterai. |
+| 8 | **Adaptor AC/DC 12V & Jack** | <img src="./images_/adp12v.jpg" width="200"><br><img src="./images_/jack%20dc.jpg" width="200"><br><img src="./images_/jack%20female.jpg" width="200"> | Pengisian daya eksternal | Jalur pengisian ulang baterai. |
+| 9 | **Saklar (Switch)** | <img src="./images_/saklar.avif" width="200"> | Pemutus arus | Menghubungkan atau memutus daya sistem. |
+| 10 | **Kabel Jumper, Pin Header Male & Timah Solder** | <img src="./images_/jumper.jpg" width="200"><br><img src="./images_/pinheader.jpg" width="200"><br><img src="./images_/timah.webp" width="200"> | Koneksi elektrikal | Penghubung fisik antar komponen. |
 ### Skema Alat dan Bahan (Wiring Flow)
 
-![Skema Alat dan Bahan](./Wiring%20Diagram/wiring%20flow.png)
+<p align="center">
+  <img src="Wiring Diagram/wiring flow.png" width="500">
+</p>
 
 ### Desain Sasing (3D Model Casing)
 Desain sasing terdiri dari 3 bagian utama, yaitu:
@@ -178,39 +141,42 @@ Untuk melihat sasing secara utuh bisa dilihat dibawah:
 
 ---
 
-## 4. Foto Alat
-
-> **Catatan:** Ganti bagian ini dengan foto dokumentasi aktual perangkat keras proyek.
+## 4. Dokumentasi
 
 ### Tampilan Keseluruhan Perangkat
 
-```
-[ Masukkan foto keseluruhan rangkaian hardware di sini ]
-```
+<p align="center">
+  <img src="images_/alat.jpeg" width="500">
+</p>
 
-### Detail Rangkaian ESP32 + Sensor
-
-```
-[ Masukkan foto close-up rangkaian ESP32, Soil Moisture, dan MPU6050 ]
-```
-
-### Raspberry Pi dan Server
-
-```
-[ Masukkan foto Raspberry Pi 4 yang digunakan sebagai server lokal ]
-```
+### Detail Rangkaian ESP32 + Sensor dalam Casing
+|  Bagian Tengah | Bagian Bawah |
+|----------|----------|
+| <img src="images_/sensor.jpeg" width="250"> | <img src="images_/sensor 2.jpeg" width="250"> |
 
 ### Tampilan Web Dashboard
 
-```
-[ Masukkan screenshot halaman utama dashboard ILMAS ]
-```
+<p align="center">
+  <img src="images_/dashboard 1.png" width="300">
+  <img src="images_/dashboard 2.png" width="300">
+  <img src="images_/dashboard 3.png" width="300">
+</p>
+
+<p align="center">
+  <img src="images_/dashboard 4.png" width="300">
+  <img src="images_/dashboard 5.png" width="300">
+  <img src="images_/dashboard 6.png" width="300">
+</p>
+
+<p align="center">
+  <img src="images_/dashboard 7.png" width="300">
+</p>
 
 ### Notifikasi Telegram
 
-```
-[ Masukkan screenshot notifikasi Telegram saat status WASPADA atau BAHAYA ]
-```
+<p align="center">
+  <img src="images_/tele notif.jpeg" width="400">
+</p>
 
 ---
 
@@ -231,7 +197,7 @@ Untuk melihat sasing secara utuh bisa dilihat dibawah:
 
 | Teknologi | Keterangan |
 |-----------|------------|
-| Python 3 | Bahasa pemrograman utama AI pipeline dan subscriber MQTT |
+| Python 3.14.4 | Bahasa pemrograman utama AI pipeline dan subscriber MQTT |
 | `paho-mqtt` | Klien MQTT untuk subscribe topic `datasensor/data` |
 | `psycopg2` | Koneksi Python ke basis data PostgreSQL |
 | `TensorFlow / Keras` | *Framework* deep learning untuk model LSTM |
@@ -251,10 +217,10 @@ Untuk melihat sasing secara utuh bisa dilihat dibawah:
 
 | Teknologi | Versi | Keterangan |
 |-----------|-------|------------|
-| Laravel | 13.x | Framework PHP untuk web *backend* dan routing |
+| Laravel | 13.8 | Framework PHP untuk web *backend* dan routing |
 | PHP | 8.3 | Runtime bahasa pemrograman *backend* |
-| Tailwind CSS | 4.x | Framework CSS *utility-first* untuk antarmuka |
-| Vite | 8.x | *Build tool* aset frontend |
+| Tailwind CSS | 4.0.0 | Framework CSS *utility-first* untuk antarmuka |
+| Vite | 8.0.0 | *Build tool* aset frontend |
 | Chart.js | CDN | Visualisasi grafik data sensor dan riwayat status |
 | PostgreSQL | 14+ | Basis data relasional yang dibaca langsung oleh web |
 | Gemini API (2.5 Flash) | v1beta | Model AI Google untuk fitur *chatbot* berbasis data sensor terkini |
@@ -279,19 +245,13 @@ Untuk melihat sasing secara utuh bisa dilihat dibawah:
 | **BMKG Open API** | Menampilkan prakiraan cuaca Surabaya di *dashboard* (kondisi, curah hujan, suhu, kelembaban udara) |
 | **Google Gemini 2.5 Flash** | Menjawab pertanyaan tentang kondisi sensor terkini melalui fitur *chatbot* |
 
-### Otomasi Alur Kerja
-
-| Teknologi | Fungsi |
-|-----------|--------|
-| **n8n** | Platform otomasi *workflow* yang menggantikan `ilmas.py` sebagai MQTT subscriber, meneruskan data ke PostgreSQL, serta menjalankan *alert* scheduler setiap 10 detik, rekap berkala setiap 6 jam, dan *health check* sensor setiap 1 jam |
-
 ---
 
 ## 6. Struktur Basis Data
 
 ### Tabel `sensor_data`
 
-Tabel utama yang menyimpan seluruh data sensor dan hasil inferensi AI.
+Tabel utama yang menyimpan seluruh data sensor dan hasil pengolahan data oleh Machine Learning
 
 | Kolom | Tipe | Keterangan |
 |-------|------|------------|
@@ -310,66 +270,14 @@ Tabel utama yang menyimpan seluruh data sensor dan hasil inferensi AI.
 | `rf_confidence` | NUMERIC | Tingkat keyakinan model Random Forest (0–100%) |
 | `lstm_confidence` | NUMERIC | Tingkat keyakinan model LSTM (0–100%) |
 
-### Tabel `telegram_alert_logs`
-
-Tabel pencatatan riwayat pengiriman notifikasi Telegram.
-
-| Kolom | Tipe | Keterangan |
-|-------|------|------------|
-| `id` | BIGINT PRIMARY KEY | Identitas unik log |
-| `status` | VARCHAR(20) | Status saat notifikasi dikirim |
-| `sensor_log_id` | BIGINT | Referensi ke baris `sensor_data` terkait |
-| `moisture_percent` | DECIMAL | Kelembaban tanah saat notifikasi dikirim |
-| `pitch`, `roll` | DECIMAL | Sudut kemiringan saat notifikasi dikirim |
-| `vibration` | DECIMAL | Nilai getaran saat notifikasi dikirim |
-| `rf_confidence` | DECIMAL | Keyakinan model RF saat notifikasi dikirim |
-| `lstm_confidence` | DECIMAL | Keyakinan model LSTM saat notifikasi dikirim |
-| `sent` | BOOLEAN | Status keberhasilan pengiriman ke Telegram |
-| `sensor_timestamp` | TIMESTAMP | Waktu data sensor yang memicu notifikasi |
-| `created_at` | TIMESTAMP | Waktu notifikasi diproses oleh sistem |
-
 ---
 
-## 7. Struktur Direktori
-
-```
-ilmas/
-├── ilmas_esp.ino              # Firmware ESP32 (Arduino)
-│
-├── raspberry-pi/
-│   ├── ilmas.py               # Subscriber MQTT + INSERT ke PostgreSQL
-│   ├── ai_pipeline.py         # AI pipeline: Random Forest + LSTM inference
-│   ├── lstm_model.h5          # Model LSTM terlatih (TensorFlow/Keras)
-│   ├── rf_model.pkl           # Model Random Forest terlatih (scikit-learn)
-│   └── lstm_scaler.pkl        # Scaler normalisasi input LSTM
-│
-├── ilmas-web/                 # Web dashboard (Laravel)
-│   ├── app/
-│   │   ├── Http/Controllers/
-│   │   │   ├── DashboardController.php   # Controller utama dashboard
-│   │   │   ├── ChatbotController.php     # Controller chatbot Gemini
-│   │   │   └── ForecastController.php    # Controller data forecast
-│   │   ├── Models/
-│   │   │   ├── SensorLog.php             # Model tabel sensor_data
-│   │   │   └── TelegramAlertLog.php      # Model tabel telegram_alert_logs
-│   │   └── Services/
-│   │       └── TelegramAlertService.php  # Layanan kirim notifikasi Telegram
-│   ├── resources/views/
-│   │   └── dashboard.blade.php           # Tampilan utama dashboard
-│   └── .env                              # Konfigurasi environment
-│
-└── n8n/
-    └── ilmas_n8n_workflow.json  # Workflow n8n (opsional, pengganti ilmas.py)
-```
-
----
-
-## 8. Panduan Instalasi
+## 7. Panduan Instalasi
 
 ### Prasyarat
 
 - Raspberry Pi 4 dengan OS Raspberry Pi OS (Debian-based)
-- Python 3.x dengan pip
+- Python 3.14.4 dengan pip
 - PHP 8.3 dan Composer
 - Node.js 18+ dan npm
 - PostgreSQL 14+
@@ -461,5 +369,6 @@ TELEGRAM_CHAT_ID=CHAT_ID_TUJUAN
 ```
 
 
-## 9. Video Demonstrasi
+## 8. Video Demonstrasi
+ [Klik di sini untuk melihat video demonstrasi]([https://drive.google.com/file/d/FILE_ID/view?usp=sharing](https://drive.google.com/file/d/1K86XRRkkS0SOtEjkmsSaJ_Bi0FRVXc7J/view?usp=sharing))
 
