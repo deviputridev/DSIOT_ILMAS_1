@@ -3,7 +3,7 @@
 Sistem deteksi dini bencana tanah longsor berbasis IoT dan kecerdasan buatan yang memantau kondisi tanah secara *real-time*, mengklasifikasikan tingkat bahaya menggunakan model *machine learning*, serta mengirimkan peringatan otomatis melalui Telegram.
 
 ---
-## 👥 Kelompok 1
+## Kelompok 1
 
 | No | Nama                  | NRP        | Peran                                                                 |
 |----|-----------------------|------------|-----------------------------------------------------------------------|
