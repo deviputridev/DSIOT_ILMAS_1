@@ -370,5 +370,5 @@ TELEGRAM_CHAT_ID=CHAT_ID_TUJUAN
 
 
 ## 8. Video Demonstrasi
- [Klik di sini untuk melihat video demonstrasi]([https://drive.google.com/file/d/FILE_ID/view?usp=sharing](https://drive.google.com/file/d/1K86XRRkkS0SOtEjkmsSaJ_Bi0FRVXc7J/view?usp=sharing))
+ [Klik di sini untuk melihat video demonstrasi]([(https://drive.google.com/file/d/1K86XRRkkS0SOtEjkmsSaJ_Bi0FRVXc7J/view?usp=sharing)])
 
